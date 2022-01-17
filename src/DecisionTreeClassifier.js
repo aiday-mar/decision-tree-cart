@@ -8,6 +8,7 @@ const defaultOptions = {
   minNumSamples: 3,
   maxDepth: Infinity,
   gainThreshold: 0.01,
+  encoding: 'labelEncoding',
 };
 
 export class DecisionTreeClassifier {
@@ -18,6 +19,7 @@ export class DecisionTreeClassifier {
    * @param {string} [options.splitFunction="mean"] - given two integers from a split feature, get the value to split, "mean" the only one supported.
    * @param {number} [options.minNumSamples=3] - minimum number of samples to create a leaf node to decide a class.
    * @param {number} [options.maxDepth=Infinity] - Max depth of the tree.
+   * @param {string} [options.maxDepth="labelEncoding"] - the method used to encode categorical data, "labelEncoding" is the only one supported
    * @param {object} model - for load purposes.
    * @constructor
    */
@@ -39,7 +41,9 @@ export class DecisionTreeClassifier {
    */
   train(trainingSet, trainingLabels) {
     this.root = new Tree(this.options);
-    trainingSet = Matrix.checkMatrix(trainingSet);
+    trainingSet = Matrix.checkMatrix(trainingSet, this.encoding);
+    this.dictCategoricalToNumerical = trainingSet.dictCategoricalToNumerical;
+    this.k = trainingSet.k;
     this.root.train(trainingSet, trainingLabels, 0, null);
   }
 
@@ -48,8 +52,14 @@ export class DecisionTreeClassifier {
    * @param {Matrix|MatrixTransposeView|Array} toPredict
    * @return {Array} predictions
    */
-  predict(toPredict) {
-    toPredict = Matrix.checkMatrix(toPredict);
+  predict(toPredictInitial) {
+    let toPredict = JSON.parse(JSON.stringify(toPredictInitial));
+    toPredict = Matrix.checkMatrix(
+      toPredict,
+      this.encoding,
+      this.dictCategoricalToNumerical,
+      this.k,
+    );
     let predictions = new Array(toPredict.rows);
 
     for (let i = 0; i < toPredict.rows; ++i) {

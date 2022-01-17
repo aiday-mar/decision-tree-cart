@@ -26,7 +26,8 @@ export default class TreeNode {
     this.splitFunction = options.splitFunction;
     this.minNumSamples = options.minNumSamples;
     this.maxDepth = options.maxDepth;
-  this.gainThreshold = options.gainThreshold || 0;
+    this.gainThreshold = options.gainThreshold || 0;
+    this.encoding = options.encoding || 'labelEncoding';
   }
 
   /**
@@ -37,9 +38,6 @@ export default class TreeNode {
    * @return {object} - return tree values, the best gain, column and the split value.
    */
   bestSplit(XTranspose, y) {
-    // Depending in the node tree class, we set the variables to check information gain (to classify)
-    // or error (for regression)
-
     let bestGain = this.kind === 'classifier' ? -Infinity : Infinity;
     let check = this.kind === 'classifier' ? (a, b) => a > b : (a, b) => a < b;
 
